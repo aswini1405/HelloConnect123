@@ -39,7 +39,6 @@ public class MainActivity extends Activity {
     private BluetoothAdapter mAdapter = null;
     /** UUID **/
     public static final String UUID_SAMPLE_NAME_SERVICE = "000fefe-0000-1000-8000-00805f9b34fb";
-    /** CHARACTERISTIC **/
     public static final String UUID_SAMPLE_NAME_CHARACTERISTIC = "0000ffee-0000-1000-8000-00805f9b34fb";
 
     @Override
@@ -72,11 +71,11 @@ public class MainActivity extends Activity {
         mAdapter = mMnager.getAdapter();
 
         mBluetoothLeAdvertiser = mAdapter.getBluetoothLeAdvertiser();
-        //mBLAdvertiserの確認
+        //mBLAdvertiser
         if (mBluetoothLeAdvertiser != null) {
-            Log.d("OUT", "存在する" + mBluetoothLeAdvertiser);
+            Log.d("OUT", "Not equal to NULL" + mBluetoothLeAdvertiser);
         } else {
-            Log.d("OUT", "存在しない" + mBluetoothLeAdvertiser);
+            Log.d("OUT", "NULL" + mBluetoothLeAdvertiser);
             return;
         }
 
@@ -95,54 +94,34 @@ public class MainActivity extends Activity {
         };
     }
 
-
     /**
-     * AdvertiseSettingsに必要な４つの設定項目
-     * 電波強度
-     * 接続の設定
-     * 検知可能状態の設定
-     * 制御の設定
+     * AdvertiseSettings
      */
     private static AdvertiseSettings createAdvSettings() {
         AdvertiseSettings.Builder builder = new AdvertiseSettings.Builder();
-
-        /**強度の設定
+        /*
          * ADVERTISE_TX_POWER_ULTRA_LOW
          * ADVERTISE_TX_POWER_LOW
          * ADVERTISE_TX_POWER_MEDIUM
          * ADVERTISE_TX_POWER_HIGH
          */
         builder.setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH);
-
-        /** 接続可能か非接続かを解いています．
-         true:接続可能
-         flase:非接続
-         */
         builder.setConnectable(true);
-
-        /**接続時間の設定
-         * 0の場合，接続時間を無効とする．
-         * 最大の設定時間は180sです．
-         */
         builder.setTimeout(0);
-
-        /** 広告電力と待ち時間を制御するモード
+        /**
          * ADVERTISE_MODE_LOW_POWER
          * ADVERTISE_MODE_BALANCED
          * ADVERTISE_MODE_LOW_LATENCY
          */
         builder.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
-
         return builder.build();
     }
 
-    // いろいろの設定を行う．
     private static AdvertiseData createAdvData() {
 
         AdvertiseData.Builder builder = new AdvertiseData.Builder();
 
-        // サービスのUUIDの追加
-//        builder.addServiceUuid() ;
+        // builder.addServiceUuid() ;
         builder.addServiceUuid(ParcelUuid.fromString(UUID_SAMPLE_NAME_SERVICE));
 
         /**
@@ -150,88 +129,69 @@ public class MainActivity extends Activity {
          * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
          */
         /**@param manufacturerSpecificData Manufacturer specific data
-         * Manufacturer Specific Data(マニュファクチャラ スペシフィック データ)は、それぞれの企業の任意デー
-        タに使われます。AD type は 0xFFです。Ad Dataは、先頭2オクテットが Bluetooth SIGが企業に発行した識
-        別子、そして任意長のバイナリ・データが続きます。企業の識別子はCompany Identifiers documentsにリスト
-        があります。 位置ビーコンのような、非接続で周囲の不特定多数のBluetooth LEデバイスに同報するときに、デ
-        ータの格納に使えます。
+         * Manufacturer Specific Data
          */
 
-        // 格納方法
         byte mLeManufacturerData[] = {0x67, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
         byte mLeManufacturerData2[] = {(byte) 0x4C, (byte) 0x00, (byte) 0x02, (byte) 0x15, (byte) 0x15, (byte) 0x15, (byte) 0x15};
         builder.addManufacturerData(0x3103 + 1, mLeManufacturerData2);
 
-        //ここの編集を行うと検索できなくなった．
 //        builder.addManufacturerData(0x3103 + 1, new byte[]{
-//                // ビーコン仕様に沿ったデータを入力する
-//                (byte) 0x4C, (byte) 0x00, (byte) 0x02, (byte) 0x15, // ビーコン固定ヘッダ
+//                (byte) 0x4C, (byte) 0x00, (byte) 0x02, (byte) 0x15,
 //
-//                // 識別用UUID 16byte
-//                // ここではMacのuuidgenコマンドで生成した 8F3901A3-8A33-49DC-B113-A8AA39818898 を指定する
+//                // UUID 16byte
+//                // Mac uuidgen -- 8F3901A3-8A33-49DC-B113-A8AA39818898
 //                (byte) 8F, (byte) 0x39, (byte) 0x01, (byte) 0xA3,
 //                (byte) 0x8A, (byte) 0x33, (byte) 0x49, (byte) 0xDC,
 //                (byte) 0xB1, (byte) 0x13, (byte) 0xA8, (byte) 0xAA,
 //                (byte) 0x39, (byte) 0x81, (byte) 0x88, (byte) 0x98,
 //
-//                // 個体識別用のmajor/minor
-//                (byte) 0x00, (byte) 0x01,   // major値
-//                (byte) 0x00, (byte) 0x02,   // minor値
+//                // major/minor
+//                (byte) 0x00, (byte) 0x01,   // major
+//                (byte) 0x00, (byte) 0x02,   // minor
 //                // TxPower
-//                (byte) -64, // 出力は適当なBeacon製品と同じ値としておく
+//                (byte) -64,
 //        });
 
-
-        // 某BeaconなパケをAdvするためにはfalseにする必要があります。
+        // Beacon Adv false
         builder.setIncludeTxPowerLevel(false);
 
-        // スキャン時のnameを表示する．
+        // name
         builder.setIncludeDeviceName(true);
-
 
         return builder.build();
     }
 
     private void reLayout(final Boolean type, final String address) {
-
         new Runnable() {
             @Override
             public void run() {
-
                 if (!type) {
-                    tv_connect.setText("切断 " + address);
+                    tv_connect.setText("Not type " + address);
                     rl_main.setBackgroundColor(Color.BLUE);
                 } else {
-                    tv_connect.setText("接続 " + address);
+                    tv_connect.setText("Type " + address);
                     rl_main.setBackgroundColor(Color.GREEN);
                 }
-
             }
         };
     }
 
-
-
     private void startGattServer() {
-
         mGattServer = mMnager.openGattServer(getApplication(), new BluetoothGattServerCallback() {
             @Override
             public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
                 super.onConnectionStateChange(device, status, newState);
-
                 {
-
                     switch (newState) {
                         case BluetoothProfile.STATE_DISCONNECTED:
-                            Log.d("OUT", device.getName() + " 切断");
-
+                            Log.d("OUT", device.getName() + " Fetch Name ");
                             reLayout(false, device.getAddress());
                             break;
                         case BluetoothProfile.STATE_CONNECTED:
                             Log.d("OUT", "device " + device);
-                            Log.d("OUT", device.getName() + " 接続");
+                            Log.d("OUT", device.getName() + " Fetch Name ");
                             reLayout(true, device.getAddress());
-
                             break;
                     }
                 }
@@ -276,9 +236,7 @@ public class MainActivity extends Activity {
             }
         });
 
-
         BluetoothGattService nameService = new BluetoothGattService(UUID.fromString(UUID_SAMPLE_NAME_SERVICE), BluetoothGattService.SERVICE_TYPE_PRIMARY);
-
         BluetoothGattCharacteristic nameCharacteristic = new BluetoothGattCharacteristic(
                 UUID.fromString(UUID_SAMPLE_NAME_CHARACTERISTIC),
                 BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
@@ -286,7 +244,6 @@ public class MainActivity extends Activity {
         );
         nameService.addCharacteristic(nameCharacteristic);
         mGattServer.addService(nameService);
-
         mBluetoothLeAdvertiser.startAdvertising(createAdvSettings(), createAdvData(), mAdvertiseCallback);
     }
 }
